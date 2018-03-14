@@ -1,8 +1,9 @@
-CountlyCpp
+CountlyCpp (Visual Studio 2015)
 ==========
 
-C++ SDK for Countly (count.ly)
+C++ SDK for Countly (count.ly) - Visual Studio 2015
 
+This also contains pthreads and OpenSSL dependencies.
 
 CountlyCpp is a portable SDK for Countly (http://count.ly) written in C++.
 
