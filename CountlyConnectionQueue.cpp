@@ -327,10 +327,10 @@ namespace CountlyCpp
     http << "Connection: Close\r\n";
     http << "User-Agent: Countly " << Countly::GetVersion() << "\r\n\r\n";
     
-    ret = Send(s, (char *)http.str().c_str(), http.str().size());
+    ret = Send(s, (char *)http.str().c_str(), (int)http.str().size());
     if (!ret)
     {
-      close(s);
+      _close(s);
       return false;
     }
 
@@ -342,7 +342,7 @@ namespace CountlyCpp
     
     if ((readSize >= 15) && (!memcmp(buf, "HTTP/1.1 200 OK", 15)))
       ret = true;
-    close(s);
+	_close(s);
     return ret;
   }
   
@@ -441,7 +441,7 @@ namespace CountlyCpp
   
   void CountlyConnectionQueue::Close(int s)
   {
-    close(s);
+    _close(s);
   }
   
 #ifndef NOSSL
