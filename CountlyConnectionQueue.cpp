@@ -313,10 +313,11 @@ namespace CountlyCpp
     int s;
     char buf[512];
     int readSize;
-
+#ifndef NOSSL
     if (_https)
       s = ConnectSSL();
     else
+#endif
       s = Connect();
     if (s < 0)
       return false;
@@ -330,19 +331,21 @@ namespace CountlyCpp
     ret = Send(s, (char *)http.str().c_str(), (int)http.str().size());
     if (!ret)
     {
-      _close(s);
+      Close(s);
       return false;
     }
 
     memset(buf, 0x00, 512);
+#ifndef NOSSL
     if(_https)
       readSize = SSL_read(_sslHandler, (char *)buf, 512);
     else
+#endif
       readSize = recv(s, (char *)buf, 512, 0);
     
     if ((readSize >= 15) && (!memcmp(buf, "HTTP/1.1 200 OK", 15)))
       ret = true;
-	_close(s);
+	Close(s);
     return ret;
   }
   
@@ -441,7 +444,7 @@ namespace CountlyCpp
   
   void CountlyConnectionQueue::Close(int s)
   {
-    _close(s);
+    closesocket(s);
   }
   
 #ifndef NOSSL
@@ -503,10 +506,11 @@ namespace CountlyCpp
   bool CountlyConnectionQueue::Send(int s, char * buffer, int size)
   {
     int ret;
-
+#ifndef NOSSL
     if (_https)
       ret = SSL_write(_sslHandler, buffer, size);
     else
+#endif
       ret = send(s, buffer, size, 0x00); //Send data
 
 #ifndef WIN32
