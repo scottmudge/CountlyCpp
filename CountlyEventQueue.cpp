@@ -66,9 +66,6 @@ namespace CountlyCpp
   CountlyEventQueue::CountlyEventQueue() :
   _sqlHandler(NULL)
   {
-    pthread_mutexattr_t mutAttr;
-    pthread_mutexattr_init(&mutAttr);
-    pthread_mutex_init(&_lock, &mutAttr);
     _path = "";
   }
   
@@ -76,7 +73,6 @@ namespace CountlyCpp
   {
     if (_sqlHandler)
       sqlite3_close(_sqlHandler);
-    pthread_mutex_destroy(&_lock);
   }
   
   void CountlyEventQueue::SetPath(std::string path)
@@ -89,17 +85,17 @@ namespace CountlyCpp
   {
     assert(_path.size());
     
-    pthread_mutex_lock(&_lock);
+    _lock.lock();
     if (_sqlHandler)
     {
-      pthread_mutex_unlock(&_lock);
+      _lock.unlock();
       return false;
     }
     
     string fullpath = _path + string("countly.sqlite");
     if (sqlite3_open(fullpath.c_str(), &_sqlHandler) != SQLITE_OK)
     {
-      pthread_mutex_unlock(&_lock);
+      _lock.unlock();
       return false;
     }
     assert(sqlite3_threadsafe());
@@ -113,7 +109,7 @@ namespace CountlyCpp
       {
         sqlite3_close(_sqlHandler);
         _sqlHandler = NULL;
-        pthread_mutex_unlock(&_lock);
+        _lock.unlock();
         return false;
       }
     }
@@ -126,11 +122,11 @@ namespace CountlyCpp
       {
         sqlite3_close(_sqlHandler);
         _sqlHandler = NULL;
-        pthread_mutex_unlock(&_lock);
+        _lock.unlock();
         return false;
       }
     }
-    pthread_mutex_unlock(&_lock);
+    _lock.unlock();
     return true;
   }
 
@@ -207,7 +203,7 @@ namespace CountlyCpp
     if (!_sqlHandler && !LoadDb())
       return false;
     
-    pthread_mutex_lock(&_lock);
+    _lock.lock();
     
     char *zErrMsg = NULL;
     string req = "INSERT INTO events (event) VALUES('" + json +"')";
@@ -219,11 +215,11 @@ namespace CountlyCpp
       {
         sqlite3_close(_sqlHandler);
         _sqlHandler = NULL;
-        pthread_mutex_unlock(&_lock);
+        _lock.unlock();
         return false;
       }
     }
-    pthread_mutex_unlock(&_lock);
+    _lock.unlock();
     return true;
   }
   
@@ -238,18 +234,18 @@ namespace CountlyCpp
       LoadDb();
     
       //Read deviceid from settings
-    pthread_mutex_lock(&_lock);
+    _lock.lock();
     string req = "SELECT deviceid FROM settings";
     unsigned int code = sqlite3_get_table(_sqlHandler, req.c_str(), &pazResult, &rows, &nbCols, &zErrMsg);
     if ((code == SQLITE_OK) && (rows))
     {
       deviceid = pazResult[1];
       sqlite3_free_table(pazResult);
-      pthread_mutex_unlock(&_lock);
+      _lock.unlock();
       return deviceid;
     }
     sqlite3_free_table(pazResult);
-    pthread_mutex_unlock(&_lock);
+    _lock.unlock();
     
       //Failed, create new one
     stringstream UDID;
@@ -259,7 +255,7 @@ namespace CountlyCpp
       UDID << setfill ('0') << setw(8) << hex << rand();
     deviceid = UDID.str();
     req = "INSERT INTO settings (deviceid) VALUES('" + deviceid + "')";
-    pthread_mutex_lock(&_lock);
+    _lock.lock();
     code = sqlite3_exec(_sqlHandler, req.c_str(), NULL, 0, &zErrMsg);
     if (code != SQLITE_OK)
     {
@@ -269,7 +265,7 @@ namespace CountlyCpp
         _sqlHandler = NULL;
       }
     }
-    pthread_mutex_unlock(&_lock);
+    _lock.unlock();
 
     return deviceid;
   }
@@ -284,7 +280,7 @@ namespace CountlyCpp
     if (!_sqlHandler)
       LoadDb();
     
-    pthread_mutex_lock(&_lock);
+    _lock.lock();
     string req = "SELECT COUNT(*) FROM events";
     unsigned int code = sqlite3_get_table(_sqlHandler, req.c_str(), &pazResult, &rows, &nbCols, &zErrMsg);
     if (code != SQLITE_OK)
@@ -294,14 +290,14 @@ namespace CountlyCpp
         sqlite3_close(_sqlHandler);
         _sqlHandler = NULL;
       }
-      pthread_mutex_unlock(&_lock);
+      _lock.unlock();
       return 0;
     }
 
     if (rows != 0)
       ret = atoi(pazResult[1]);
     sqlite3_free_table(pazResult);
-    pthread_mutex_unlock(&_lock);
+    _lock.unlock();
 
     return ret;
   }
@@ -317,7 +313,7 @@ namespace CountlyCpp
     if (!_sqlHandler)
       LoadDb();
     
-    pthread_mutex_lock(&_lock);
+    _lock.lock();
     string req = "SELECT evtid, event FROM events LIMIT 1";
     unsigned int code = sqlite3_get_table(_sqlHandler, req.c_str(), &pazResult, &rows, &nbCols, &zErrMsg);
     if (code != SQLITE_OK)
@@ -327,14 +323,14 @@ namespace CountlyCpp
         sqlite3_close(_sqlHandler);
         _sqlHandler = NULL;
       }
-      pthread_mutex_unlock(&_lock);
+      _lock.unlock();
       
       return "";
     }
     
     if (!rows)
     {
-      pthread_mutex_unlock(&_lock);
+      _lock.unlock();
       return "";
     }
 
@@ -343,7 +339,7 @@ namespace CountlyCpp
     *evtId = atoi(pazResult[2]);
     ret = pazResult[3];
     sqlite3_free_table(pazResult);
-    pthread_mutex_unlock(&_lock);
+    _lock.unlock();
     
     return ret;
   }
@@ -352,7 +348,7 @@ namespace CountlyCpp
   {
     stringstream req;
     req  << "DELETE FROM events WHERE evtid=" << dec << evtId;
-    pthread_mutex_lock(&_lock);
+    _lock.lock();
     char *zErrMsg = NULL;
 
     if (!_sqlHandler)
@@ -368,7 +364,7 @@ namespace CountlyCpp
         _sqlHandler = NULL;
       }
     }
-    pthread_mutex_unlock(&_lock);
+    _lock.unlock();
   }
   
   

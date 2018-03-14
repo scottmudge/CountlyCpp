@@ -87,7 +87,7 @@
     </ClCompile>
     <Lib>
       <AdditionalLibraryDirectories>$(ProjectDir)lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>pthread.lib;libcryptoMD.lib;libsslMD.lib</AdditionalDependencies>
+      <AdditionalDependencies>libcryptoMD.lib;libsslMD.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -112,13 +112,14 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>pthread.lib;libcryptoMD.lib;libsslMD.lib</AdditionalDependencies>
+      <AdditionalDependencies>libcryptoMD.lib;libsslMD.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)lib</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>

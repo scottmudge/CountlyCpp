@@ -35,7 +35,7 @@
 
 #include <map>
 #include <iostream>
-#include <pthread.h>
+#include <thread>
 
 namespace CountlyCpp
 {
@@ -70,7 +70,7 @@ namespace CountlyCpp
       CountlyEventQueue   * _eventQueue;
       CountlyConnectionQueue   * _connectionQueue;
 
-      pthread_t             _thread;
+      std::thread            _thread;
       bool                  _threadRunning;
 
     

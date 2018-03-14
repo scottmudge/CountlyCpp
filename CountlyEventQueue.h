@@ -31,8 +31,8 @@
 #define __CountlyCpp__CountlyEventQueue__
 #include <iostream>
 #include <map>
-#include <pthread.h>
 #include "sqlite3.h"
+#include <mutex>
 
 namespace CountlyCpp
 {
@@ -62,7 +62,7 @@ namespace CountlyCpp
       bool LoadDb();
     
       sqlite3 *          _sqlHandler;
-      pthread_mutex_t   _lock;
+      std::mutex		_lock;
       std::string       _path;
   };
   

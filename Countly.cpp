@@ -109,7 +109,8 @@ namespace CountlyCpp
     if (!_threadRunning)
       return;
     _threadRunning = false;
-    pthread_join(_thread, NULL);
+	if (_thread.joinable())
+		_thread.join();
   }
   
   void Countly::SetPath(std::string path)
@@ -121,13 +122,7 @@ namespace CountlyCpp
   {
     _connectionQueue->SetAppKey(appKey);
     _connectionQueue->SetAppHost(host, port);
-
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_create(&_thread,
-                   &attr,
-                   _startThreadTimer,
-                   (void *)this);
+	_thread = std::thread(&CountlyCpp::_startThreadTimer,this);
   }
   
   void Countly::StartOnCloud(std::string appKey)
